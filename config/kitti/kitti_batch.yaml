@@ -1,12 +1,14 @@
 setting:
   name: "kitti_batch"
   output_root: "./experiments/"
-  pc_path: "xxx/data/kitti/sequences/00/velodyne"
-  label_path: "xxx/data/kitti/sequences/00/labels" # optional for semantic mapping
-  pose_path: "xxx/data/kitti/sequences/00/poses.txt"
-  calib_path: "xxx/data/kitti/sequences/00/calib.txt"
+  pc_path: "/content/drive/MyDrive/semantic_shine/data/kitti_example/sequences/00/velodyne"
+  label_path: "/content/drive/MyDrive/semantic_shine/data/kitti_example/sequences/00/labels" # optional for semantic mapping
+  pose_path: "/content/drive/MyDrive/semantic_shine/data/kitti_example/sequences/00/poses.txt"
+  calib_path: "/content/drive/MyDrive/semantic_shine/data/kitti_example/sequences/00/calib.txt"
   load_model: False
-  model_path: "" 
+  load_mlp: True
+  load_tree: True
+  model_path: ""
   first_frame_ref: False
   begin_frame: 0
   end_frame: 5000
@@ -15,7 +17,7 @@ setting:
   gpu_id: "0"
 process:
   min_range_m: 3.0
-  pc_radius_m: 50.0  # distance filter for each frame
+  pc_radius_m: 50.0 # distance filter for each frame
   min_z_m: -3.5
   rand_downsample: False # use random or voxel downsampling
   vox_down_m: 0.05
@@ -39,7 +41,7 @@ decoder:
   freeze_after_frame: 0
 loss:
   ray_loss: False
-  main_loss_type: sdf_bce  # select from sdf_bce (our proposed), sdf_l1, sdf_l2, dr, dr_neus
+  main_loss_type: sdf_bce # select from sdf_bce (our proposed), sdf_l1, sdf_l2, dr, dr_neus
   sigma_sigmoid_m: 0.1
   loss_weight_on: False
   behind_dropoff_on: False
@@ -56,8 +58,8 @@ optimizer:
   learning_rate: 0.05
   weight_decay: 1e-7 # l2 regularization
 eval:
-  wandb_vis_on: False # log to wandb or not
-  o3d_vis_on: True # visualize the mapping or not
+  wandb_vis_on: True # log to wandb or not
+  o3d_vis_on: False # visualize the mapping or not
   vis_freq_iters: 10000 # reconstruct the mesh every x iterations
   save_freq_iters: 10000 # save the model and octree every x iterations
   mesh_freq_frame: 1
@@ -65,4 +67,4 @@ eval:
   mc_with_octree: True # querying sdf only in certain levels of the octree
   mc_local: False
   mc_vis_level: 1
-  save_map: False # save the sdf map or not 
+  save_map: False # save the sdf map or not

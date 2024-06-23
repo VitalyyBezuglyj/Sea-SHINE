@@ -13,19 +13,21 @@ RED = np.array([128, 0, 0]) / 255.0
 BLACK = np.array([0, 0, 0]) / 255.0
 GOLDEN = np.array([1.0, 0.843, 0.0])
 
-random_color_table = [[230. / 255., 0., 0.],  # red
-                    [60. / 255., 180. / 255., 75. / 255.],  # green
-                    [0., 0., 255. / 255.],  # blue
-                    [255. / 255., 0, 255. / 255.],
-                    [255. / 255., 165. / 255., 0.],
-                    [128. / 255., 0, 128. / 255.],
-                    [0., 255. / 255., 255. / 255.],
-                    [210. / 255., 245. / 255., 60. / 255.],
-                    [250. / 255., 190. / 255., 190. / 255.],
-                    [0., 128. / 255., 128. / 255.]
-                    ]
+random_color_table = [
+    [230.0 / 255.0, 0.0, 0.0],  # red
+    [60.0 / 255.0, 180.0 / 255.0, 75.0 / 255.0],  # green
+    [0.0, 0.0, 255.0 / 255.0],  # blue
+    [255.0 / 255.0, 0, 255.0 / 255.0],
+    [255.0 / 255.0, 165.0 / 255.0, 0.0],
+    [128.0 / 255.0, 0, 128.0 / 255.0],
+    [0.0, 255.0 / 255.0, 255.0 / 255.0],
+    [210.0 / 255.0, 245.0 / 255.0, 60.0 / 255.0],
+    [250.0 / 255.0, 190.0 / 255.0, 190.0 / 255.0],
+    [0.0, 128.0 / 255.0, 128.0 / 255.0],
+]
 
-class MapVisualizer():
+
+class MapVisualizer:
     # Public Interaface ----------------------------------------------------------------------------
     def __init__(self):
         # Initialize GUI controls
@@ -35,7 +37,7 @@ class MapVisualizer():
 
         # Create data
         self.scan = o3d.geometry.PointCloud()
-        self.frame_axis_len = 0.8 # 0.5
+        self.frame_axis_len = 0.8  # 0.5
         self.frame = o3d.geometry.TriangleMesh()
         self.mesh = o3d.geometry.TriangleMesh()
 
@@ -64,7 +66,7 @@ class MapVisualizer():
             if self.play_crun:
                 break
 
-    def update(self, scan, pose, mesh = None):
+    def update(self, scan, pose, mesh=None):
         self._update_geometries(scan, pose, mesh)
         self.update_view()
         self.pause_view()
@@ -78,10 +80,10 @@ class MapVisualizer():
         self._update_mesh(mesh)
         self.update_view()
         self.pause_view()
-    
+
     def destroy_window(self):
         self.vis.destroy_window()
-    
+
     def stop(self):
         self.play_crun = not self.play_crun
         while self.block_vis:
@@ -141,7 +143,7 @@ class MapVisualizer():
     def _toggle_map(self, vis):
         self.render_map = not self.render_map
         return False
-    
+
     def _update_mesh(self, mesh):
         if mesh is not None:
             self.vis.remove_geometry(self.mesh, self.reset_bounding_box)
@@ -162,7 +164,7 @@ class MapVisualizer():
                 self.vis.reset_view_point(True)
                 self.reset_bounding_box = False
 
-    def _update_geometries(self, scan, pose, mesh = None):
+    def _update_geometries(self, scan, pose, mesh=None):
         # Scan (toggled by "F")
         if self.render_frame:
             self.scan.points = o3d.utility.Vector3dVector(scan.points)
@@ -171,21 +173,25 @@ class MapVisualizer():
             self.scan.points = o3d.utility.Vector3dVector()
 
         # Always visualize the coordinate frame
-        self.frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=self.frame_axis_len, origin=np.zeros(3))
+        self.frame = o3d.geometry.TriangleMesh.create_coordinate_frame(
+            size=self.frame_axis_len, origin=np.zeros(3)
+        )
         self.frame = self.frame.transform(pose)
-        
+
         # Mesh Map (toggled by "M")
         # mesh already got global shifted
         if self.render_map:
             if mesh is not None:
-                self.vis.remove_geometry(self.mesh, self.reset_bounding_box)  # if comment, then we keep the previous reconstructed mesh (for the case we use local map reconstruction) 
+                self.vis.remove_geometry(
+                    self.mesh, self.reset_bounding_box
+                )  # if comment, then we keep the previous reconstructed mesh (for the case we use local map reconstruction)
                 self.mesh = mesh
                 self.vis.add_geometry(self.mesh, self.reset_bounding_box)
         else:
-            self.vis.remove_geometry(self.mesh, self.reset_bounding_box) 
+            self.vis.remove_geometry(self.mesh, self.reset_bounding_box)
 
         self.vis.update_geometry(self.scan)
-        self.vis.add_geometry(self.frame, self.reset_bounding_box)            
+        self.vis.add_geometry(self.frame, self.reset_bounding_box)
 
         if self.reset_bounding_box:
             self.vis.reset_view_point(True)

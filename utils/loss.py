@@ -6,7 +6,7 @@ import torch.nn as nn
 def sdf_diff_loss(pred, label, weight, scale, l2_loss=True):
     count = pred.shape[0]
     diff = pred - label
-    diff_m = diff / scale # so it's still in m unit
+    diff_m = diff / scale  # so it's still in m unit
     if l2_loss:
         loss = (weight * (diff_m**2)).sum() / count  # l2 loss
     else:
@@ -14,7 +14,7 @@ def sdf_diff_loss(pred, label, weight, scale, l2_loss=True):
     return loss
 
 
-def sdf_bce_loss(pred, label, sigma, weight, weighted=False, bce_reduction = "mean"):
+def sdf_bce_loss(pred, label, sigma, weight, weighted=False, bce_reduction="mean"):
     if weighted:
         loss_bce = nn.BCEWithLogitsLoss(reduction=bce_reduction, weight=weight)
     else:
@@ -23,6 +23,21 @@ def sdf_bce_loss(pred, label, sigma, weight, weighted=False, bce_reduction = "me
     loss = loss_bce(pred, label_op)
     return loss
 
+def contrastive_sdf_bce_loss(pred_incorrect, label, sigma, weight=None, weighted=False, bce_reduction="mean", contrastive_margin=1.0):
+    # BCE loss for correct labels
+    if weighted:
+        loss_bce = nn.BCEWithLogitsLoss(reduction=bce_reduction, weight=weight)
+    else:
+        loss_bce = nn.BCEWithLogitsLoss(reduction=bce_reduction)
+    label_op = torch.sigmoid(label / sigma)  # Occupancy probability for correct labels
+    
+    # Contrastive part
+    # We want the difference in predictions for incorrect labels to be sufficiently large
+    # But since we don't have a true SDF value for incorrect labels, we compare against the correct label's probability as a baseline
+    pred_incorrect_sigmoid = torch.sigmoid(pred_incorrect / sigma)
+    loss_contrastive = F.relu(contrastive_margin - torch.abs(pred_incorrect_sigmoid - label_op)).mean()
+    
+    return loss_contrastive
 
 def ray_estimation_loss(x, y, d_meas):  # for each ray
     # x as depth
@@ -92,7 +107,7 @@ def batch_ray_rendering_loss(x, y, d_meas, neus_on=True):  # for all rays in a b
     sort_y = torch.gather(y, 1, indices)  # for each row
 
     if neus_on:
-        neus_alpha = (sort_y[:, 1:] - sort_y[:, 0:-1]) / ( 1. - sort_y[:, 0:-1] + 1e-10)
+        neus_alpha = (sort_y[:, 1:] - sort_y[:, 0:-1]) / (1.0 - sort_y[:, 0:-1] + 1e-10)
         # avoid dividing by 0 (nan)
         # print(neus_alpha)
         alpha = torch.clamp(neus_alpha, min=0.0, max=1.0)
