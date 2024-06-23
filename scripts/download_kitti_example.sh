@@ -12,4 +12,3 @@ tar -xvf kitti_example.tar.gz
 rm kitti_example.tar.gz
 
 cd ../..
-
